@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <cstring>
 
+#include <easy/runtime/Function.h>
+
 namespace easy {
 
 struct ArgumentBase {
@@ -16,6 +18,7 @@ struct ArgumentBase {
     AK_Float,
     AK_Ptr,
     AK_Struct,
+    AK_Module,
   };
 
   ArgumentBase() = default;
@@ -45,6 +48,9 @@ struct ArgumentBase {
 #define DeclareArgument(Name, Type) \
   class Name##Argument \
     : public ArgumentBase { \
+    \
+    using HashType = typename std::remove_const<typename std::remove_reference<Type>::type>::type; \
+    \
     Type Data_; \
     public: \
     Name##Argument(Type D) : ArgumentBase(), Data_(D) {}; \
@@ -59,13 +65,14 @@ struct ArgumentBase {
       return Data_ == OtherCast.Data_; \
     } \
     \
-    size_t hash() const noexcept override  { return std::hash<Type>{}(Data_); } \
+    size_t hash() const noexcept override  { return std::hash<HashType>{}(Data_); } \
   }
 
 DeclareArgument(Forward, unsigned);
 DeclareArgument(Int, int64_t);
 DeclareArgument(Float, double);
 DeclareArgument(Ptr, void const*);
+DeclareArgument(Module, easy::Function const&);
 
 class StructArgument
     : public ArgumentBase {
@@ -122,6 +129,7 @@ class Context {
   Context& setParameterFloat(unsigned, double);
   Context& setParameterPtrVoid(unsigned, void const*);
   Context& setParameterPlainStruct(unsigned, char const*, size_t);
+  Context& setParameterModule(unsigned, easy::Function const&);
 
   template<class T>
   Context& setParameterPtr(unsigned idx, T* ptr) {

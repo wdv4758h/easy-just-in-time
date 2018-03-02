@@ -29,6 +29,10 @@ Context& Context::setParameterPlainStruct(unsigned arg_idx, char const* ptr, siz
   return setArg<StructArgument>(arg_idx, ptr, size);
 }
 
+Context& Context::setParameterModule(unsigned arg_idx, easy::Function const &F) {
+  return setArg<ModuleArgument>(arg_idx, F);
+}
+
 bool Context::operator==(const Context& Other) const {
   if(getOptLevel() != Other.getOptLevel())
     return false;
